@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/Library/Frameworks/Python.framework/Versions/2.7/bin/python
 """warcextract - dump warc record context to directory"""
 
 import os
 import sys
 import os.path
+
 import uuid
 import mimetypes
 import shlex

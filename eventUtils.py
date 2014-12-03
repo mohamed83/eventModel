@@ -1,16 +1,21 @@
+#!/Library/Frameworks/Python.framework/Versions/2.7/bin/python
 '''
 Created on Oct 10, 2014
 
 @author: dlrl
 '''
 import nltk
-import sys
+import sys, os
 import re
 from bs4 import BeautifulSoup, Comment
 import requests
 from nltk.corpus import stopwords
 from readability.readability import Document
 from operator import itemgetter
+from contextlib import closing
+from hanzo.warctools import ArchiveRecord, WarcRecord
+import warcunpack_ia
+import logging
 
 import ner
 from gensim import corpora, models
@@ -279,35 +284,44 @@ def parseLogFileForHtml(log_file):
 # Extracts text from a given HTML file and indexes it into the Solr Instance
 def extractText(html_files):
     textFiles = []
+
+    titles = {}
     for f in html_files:
-        html_file = f["file"]
+        html_file = f["file"].strip()
         file_url = f["url"].strip()
         wayback_url = f["wayback_url"].strip()
-        # read the file into a string so beautifulsoup can use it 
-           
-        html_fileh = open(html_file, "r")
-        html_string = html_fileh.read()
+
+        try:   
+        	html_fileh = open(html_file, "r")
+        	html_string = html_fileh.read()
+
+        except:
+        	print "Error reading"
+        	logging.exception('')
         
         if len(html_string) < 1:
             print "error parsing html file " + str(html_file)
             continue
         try:   
-            #soup = BeautifulSoup(html_string)
-            d = utils.extractTextFromHTML(html_string)
+            d = extractTextFromHTML(html_string)
+
         except:
             print "Error: Cannot parse HTML from file: " + html_file
+            print sys.exc_info()
+            logging.exception('')
             continue    
         
         
-        titles = {}
+        
         title = d['title']
         if title and title in titles:
+            #print "Title already exists"
             continue
         else:
             titles[title]=1
         html_body = d['text']
         textFiles.append(html_body)
-	return textFiles
+    return textFiles
 
         #html_id = hashlib.md5(file_url).hexdigest()
         
@@ -325,78 +339,52 @@ def expandWarcFile(warcFile):
 #     if (argv[0] == "-h" or  len(argv) < 4):
 #         print >> sys.stderr, "usage: processWarcDir.py -d <directory> -i <collection_id> -e <event> -t <event_type>"
 #         sys.exit()
-    #Done
-    #argv = ["","/home/mohamed/IACollections/rem","","3647","","Texas Fertilizer Plant Explosion","","Accident"]
-    #argv = ["","/home/mohamed/IACollections/3437","","3437","","Connecticut School Shooting","","Shooting"]
-    #argv = ["","/home/mohamed/IACollections/2305","","2305","","Tucson Shooting","","Shooting"]
-    #argv = ["","/home/mohamed/IACollections/2823","","2823","","Russia Plane Crash","","Plane_Crash"]
-    #argv = ["","/home/mohamed/IACollections/2379","","2379","","Youngstown Shooting","","Shooting"]
-    #argv = ["","/home/mohamed/IACollections/2772","","2772","","Norway Shooting","","Shooting"]
-    #argv = ["","/home/mohamed/IACollections/694","","694","","April 16 Shooting","","Shooting"]
-    #argv = ["","/home/mohamed/IACollections/2892","","2892","","Somalia_Bomb_Blast","","Bombing"]
-    #argv = ["","/home/mohamed/IACollections/2838","","2838","","Nevada_AirRace_Crash","","Plane_Crash"]
-    #argv = ["","/home/mohamed/IACollections/2822","","2822","","Texas_Wild_Fire","","Fire"]
-    #argv = ["","/home/mohamed/IACollections/2882","","2882","","Encephalitis","","Disease_Outbreak"]
-    #argv = ["","/home/mohamed/IACollections/2842","","2842","","China_Flood","","Flood"]
-    #argv = ["","/home/mohamed/IACollections/2836","","2836","","Pakistan_Flood","","Flood"]
-    #argv = ["","/home/mohamed/IACollections/3535","","3535","","Brazil_NightClub_Fire","","Fire"]
-    #argv = ["","/home/mohamed/IACollections/2316","","2316","","Haiti_Earthquake_Anniversary","","Earthquake"]
-    #argv = ["","/home/mohamed/IACollections/2406","","2406","","New_Zealand_Earthquake","","Earthquake"]
-    #argv = ["","/home/mohamed/IACollections/2821","","2821","","Virginia_Earthquake","","Earthquake"]
-    #Not Yet
     
     
-    #argv = ["","/home/mohamed/IACollections/2903","","2903","","Turkey_Earthquake","","Earthquake"]
-    
-    
-    rootdir = warcFile
-    #rootdir = argv[1]
-    #collection_id = argv[3]
-    #event = argv[5]
-    #event_type = argv[7]
-    
-    for root, subFolders, files in os.walk(rootdir):
-        for filename in files:
-            filePath = os.path.join(root, filename)
-            if filename.endswith(".warc") or filename.endswith(".warc.gz"):# or filename.endswith(".arc.gz"):
-                # processWarcFile(filePath, collection_id, event, event_type)
-                splitext = filePath.split('.')
-                output_dir = splitext[0] + "/"
-                
-                log_file = os.path.join(output_dir, filePath[filePath.rfind("/")+1:] + '.index.txt')
-                
-                # output_file = output_dir + filePath.split("/")[1] + ".index.txt"
-                if os.path.exists(output_dir) == False:                    
-                
-                    os.makedirs(output_dir)
-        
-                    # unpackWarcAndRetrieveHtml(filePath, collection_id, event, event_type)
-                    # output_dir = filePath.split(".")[0] + "/"
-                    default_name = 'crawlerdefault'
-                    wayback = "http://wayback.archive-it.org/"
-                    collisions = 0
-                        
-                    #log_file = os.path.join(output_dir, filePath[filePath.rfind("/")+1:] + '.index.txt')
-                    
-                    log_fileh = open(log_file, 'w+b')
-                    warcunpack_ia.log_headers(log_fileh)
-                
-                    try:
-                        with closing(ArchiveRecord.open_archive(filename=filePath, gzip="auto")) as fh:
-                            collisions += warcunpack_ia.unpack_records(filePath, fh, output_dir, default_name, log_fileh, wayback)
-                
-                    except StandardError, e:
-                        print >> sys.stderr, "exception in handling", filePath, e
-                        return
-                
-                    #print "Warc unpack finished"
-                
-                html_files = parseLogFileForHtml(log_file)
-                #print "Log file parsed for html files pathes"
-                
-                
-                # for i in html_files:
-                    # extractTextAndIndexToSolr(i["file"], i["url"], i["wayback_url"], collection_id, event, event_type)
-                tf = extractText(html_files)
-                #print "extracting Text finished"
-                return tf
+    rootdir = os.path.dirname(warcFile)
+    filename = os.path.basename(warcFile)
+    filePath =warcFile
+    if filename.endswith(".warc") or filename.endswith(".warc.gz"):# or filename.endswith(".arc.gz"):
+		# processWarcFile(filePath, collection_id, event, event_type)
+		splitext = filePath.split('.')
+		output_dir = splitext[0] + "/"
+		
+		log_file = os.path.join(output_dir, filePath[filePath.rfind("/")+1:] + '.index.txt')
+		
+		# output_file = output_dir + filePath.split("/")[1] + ".index.txt"
+		if os.path.exists(output_dir) == False:                    
+		
+			os.makedirs(output_dir)
+
+			# unpackWarcAndRetrieveHtml(filePath, collection_id, event, event_type)
+			# output_dir = filePath.split(".")[0] + "/"
+			default_name = 'crawlerdefault'
+			wayback = "http://wayback.archive-it.org/"
+			collisions = 0
+				
+			#log_file = os.path.join(output_dir, filePath[filePath.rfind("/")+1:] + '.index.txt')
+			
+			log_fileh = open(log_file, 'w+b')
+			warcunpack_ia.log_headers(log_fileh)
+		
+			try:
+				with closing(ArchiveRecord.open_archive(filename=filePath, gzip="auto")) as fh:
+					collisions += warcunpack_ia.unpack_records(filePath, fh, output_dir, default_name, log_fileh, wayback)
+		
+			except StandardError, e:
+				print "exception in handling", filePath, e
+				return
+		else:
+			print "Directory Already Exists"
+		
+			#print "Warc unpack finished"
+		
+		html_files = parseLogFileForHtml(log_file)
+		#print "Log file parsed for html files pathes"
+		#print len(html_files)
+		
+		# for i in html_files:
+			# extractTextAndIndexToSolr(i["file"], i["url"], i["wayback_url"], collection_id, event, event_type)
+		tf = extractText(html_files)
+		#print "extracting Text finished"
+		return tf

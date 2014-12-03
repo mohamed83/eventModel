@@ -2,7 +2,7 @@
 print "Content-type:text/html\r\n\r\n"
 print "<html>"
 print "<head>"
-print "<title>Hello - Second CGI Program</title>"
+print "<title>Event Model Demo</title>"
 print "</head>"
 print "<body>"
 # Import modules for CGI handling
@@ -10,29 +10,52 @@ print "<body>"
 try:
 	import sys
 	import cgi, cgitb 
+	cgitb.enable()
+	#print sys.version
+	import logging
 	#print sys.version
 	import eventUtils as utils
 	
+	
 	topK = 10
 	intersectionTh = 2
-	
+	#warcFile = '/tmp/warcs/temp.warc'
 	form = cgi.FieldStorage() 
-	
-	warc = form.getvalue('uploader')
-	if warc and warc.file:
-		warcFile = warc.file.name
-		texts = utils.expandWarcFile(warcFile)
+	intype = form['inputType'].value
+	inData = form['inputData'].value
+	print inData
+	if intype == 'warc':
+		#warcFile = inData
+		texts = utils.expandWarcFile(inData)
+	else:
+		#urls = form['inputData']
 		
-
-	urls = form.getvalue('urls')
-	#if not urls: 
-	#	urls = 'http://www.nbcnews.com/storyline/ebola-virus-outbreak/why-its-not-enough-just-eradicate-ebola-n243891\nhttp://www.npr.org/blogs/thetwo-way/2014/11/09/362770821/maine-nurse-to-move-out-of-state-following-ebola-quarantine-row'
-	
-	if urls:
-		webpagesURLs = urls.split('\n')
+	#if urls:
+		webpagesURLs = inData.split('\n')
 		webpagesText = utils.getWebpageText(webpagesURLs)
 		texts = [t['text'] for t in webpagesText if t.has_key('text') and len(t['text'])>0]
-
+	'''
+	#warc = form['uploadedFile'].file
+	#warc = form.getvalue('uploader')
+	
+	
+	#print warc
+	#print warc.file
+	if warc: #and warc.file:
+		f = open(warcFile,"wb")
+		f.write(warc.read())
+		f.close()
+		#print "file saved"
+		#warcFile = warc.file.name
+		#print warcFile
+		texts = utils.expandWarcFile(warcFile)
+	#else:
+	#	texts = utils.expandWarcFile(warcFile)			
+	'''
+	
+	
+	#print texts
+	
 	#Get LDA Topics
 	ldaTopics = utils.getLDATopics(texts)
 	
@@ -93,4 +116,8 @@ try:
 	print "</body>"
 	print "</html>"
 except:
-	print sys.exc_info()
+	logging.exception('')
+	print sys.exc_info()[0]
+	print sys.exc_info()[1]
+	print sys.exc_info()[2]
+	
