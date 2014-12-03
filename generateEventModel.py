@@ -23,15 +23,18 @@ try:
 	form = cgi.FieldStorage() 
 	intype = form['inputType'].value
 	inData = form['inputData'].value
-	print inData
+	#print inData
 	if intype == 'warc':
 		#warcFile = inData
 		texts = utils.expandWarcFile(inData)
 	else:
+		uf = open(inData,'r')
+		urls = uf.readlines()
+		uf.close()
 		#urls = form['inputData']
 		
 	#if urls:
-		webpagesURLs = inData.split('\n')
+		webpagesURLs = urls #inData.split('\n')
 		webpagesText = utils.getWebpageText(webpagesURLs)
 		texts = [t['text'] for t in webpagesText if t.has_key('text') and len(t['text'])>0]
 	'''
