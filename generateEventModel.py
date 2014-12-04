@@ -66,7 +66,9 @@ try:
 	sortedTokensFreqs = utils.getFreqTokens(texts)
 
 	#Get Indicative tokens
-	sortedToksTFDF = utils.getIndicativeWords(texts)
+	#sortedToksTFDF = utils.getIndicativeWords(texts)
+	sortedToksTFDF = utils.getFilteredImptWords(texts)
+	
 	'''
 	filteredToksTFDF = []
 	toks = " ".join([])
@@ -108,7 +110,8 @@ try:
 	
 	sents_ents = "<tr><td>Important Sentences</td><td>Named Entities</td></tr>"
 	for i in range(len(sortedImptSents)):
-		sents_ents += rs + outputs + str(sortedImptSents[i]) + outpute + outputs + str(eventModelInstances[i]) + outpute + re
+		if eventModelInstances[i]:
+			sents_ents += rs + outputs + str(sortedImptSents[i]) + outpute + outputs + str(eventModelInstances[i]) + outpute + re
 
 	print wordsOutput
 	print "<br>============<br>"

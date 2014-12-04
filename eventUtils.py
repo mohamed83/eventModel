@@ -54,7 +54,6 @@ def readFileLines(filename):
     f = open(filename,"r")
     lines = f.readlines()
     return lines
-        
 
 def getSorted(tupleList,fieldIndex):
     sorted_list = sorted(tupleList, key=itemgetter(fieldIndex), reverse=True)
@@ -106,6 +105,53 @@ def _cleanSentences(sents):
     cleanSents = [sent.strip() for sent in sentences if len(sent.split()) > 3]
     return cleanSents
 
+def getUniqueEntities(sents):
+    uniqueEntities = {}
+    allEnts = getEntities(sents)
+    for ent in allEnts:
+        for k in ent:
+            if k in uniqueEntities:
+                uniqueEntities[k].extend(ent[k])
+            else:
+                uniqueEntities[k] = []
+                uniqueEntities[k].extend(ent[k])
+    #now you have a huge one dic with different entities as keys and list of values for each key
+    # we need to get the unique values in each list
+    locDateEntities = {}
+    for k in uniqueEntities:
+        if k in ["LOCATION","DATE"]:
+            l = uniqueEntities[k]
+            s = set(l)
+            locDateEntities[k] = list(s)
+    
+    return locDateEntities
+
+def getUniqueEntitiesWords(entities):
+    words = []
+    for k in entities:
+        words.extend(entities[k])
+    entitiesWords = []
+    for w in words:
+        p = w.split()
+        if len(p)>1:
+            entitiesWords.extend(p)
+        else:
+            entitiesWords.append(w)
+    entitiesWords = [ew.lower() for ew in entitiesWords]
+    return entitiesWords
+
+def getFilteredImptWords(texts):
+    impWordsTuples = getIndicativeWords(texts)
+    #impWordsList = [w[0] for w in impWordsTuples]
+    
+    uniqueEnts = getUniqueEntities(allSents)
+    uniqueEntsWords = getUniqueEntitiesWords(uniqueEnts)
+    
+    filteredImpWordsTuples = []
+    for iw in impWordsTuples:
+        if iw[0] not in uniqueEntsWords:
+            filteredImpWordsList.append(iw)
+    return filteredImpWordsTuples
 
 def getLDATopics(documents):
 	texts = []
@@ -238,7 +284,6 @@ def getEventModelInsts(sortedImptSents):
 		eventModelInstances.append(sentEnts)
 	return eventModelInstances
 
-
 def getTokensTFDF(texts):
 	tokensTF = []
 	#allTokensList=[]
@@ -265,8 +310,6 @@ def getTokensTFDF(texts):
 		tokensTFDF[t[0]] = (tokensTFDF[t[0]],t[1])
 	
 	return tokensTFDF,allSents
-	
-	
 	
 def parseLogFileForHtml(log_file):
     htmlList = []
@@ -323,13 +366,6 @@ def extractText(html_files):
         textFiles.append(html_body)
     return textFiles
 
-        #html_id = hashlib.md5(file_url).hexdigest()
-        
-    #     text_file = open(html_file + ".txt", "w+b")
-    #     text_file.write(html_body)
-    #     text_file.close()
-
-# Processes the given directory for .warc files
 #def main(argv):
 def expandWarcFile(warcFile):
 #     if (len(argv) < 1):
