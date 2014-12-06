@@ -117,12 +117,21 @@ def getUniqueEntities(sents):
                 uniqueEntities[k].extend(ent[k])
     #now you have a huge one dic with different entities as keys and list of values for each key
     # we need to get the unique values in each list
+    entitiesCount= {}
+    
     locDateEntities = {}
     for k in uniqueEntities:
         if k in ["LOCATION","DATE"]:
-            l = uniqueEntities[k]
-            s = set(l)
-            locDateEntities[k] = list(s)
+            #l = uniqueEntities[k]
+            #s = set(l)
+            #locDateEntities[k] = list(s)
+            locDateEntities[k] = [].extend(uniqueEntities[k])
+    for k in locDateEntities:
+    	for ent in locDateEntities[k]:
+    		if ent in entitiesCount:
+    			entitiesCount[ent]+=1
+    		else:
+    			entitiesCount[ent]=1
     
     return locDateEntities
 
@@ -141,17 +150,26 @@ def getUniqueEntitiesWords(entities):
     return entitiesWords
 
 def getFilteredImptWords(texts):
+	#nltk.pos_tag(text)
     impWordsTuples = getIndicativeWords(texts)
-    #impWordsList = [w[0] for w in impWordsTuples]
+    impWordsList = [w[0] for w in impWordsTuples]
     
-    uniqueEnts = getUniqueEntities(allSents)
+    wordsTags = nltk.pos_tag(impWordsList)
+    nvWords = [w[0] for w in wordsTags if w[1].startswith('N') or w[1].startswith('V')]
+    wordsDic = dict(impWordsTuples)
+    nvWordsTuple = [(w,wordsDic[w]) for w in nvWords]
+    return nvWordsTuple
+    '''
+    sents = getSentences(texts)
+    uniqueEnts = getUniqueEntities(sents)
     uniqueEntsWords = getUniqueEntitiesWords(uniqueEnts)
     
     filteredImpWordsTuples = []
     for iw in impWordsTuples:
         if iw[0] not in uniqueEntsWords:
-            filteredImpWordsList.append(iw)
-    return filteredImpWordsTuples
+            filteredImpWordsTuples.append(iw)
+    return filteredImpWordsTuples,uniqueEntsWords
+    '''
 
 def getLDATopics(documents):
 	texts = []
