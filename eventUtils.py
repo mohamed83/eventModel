@@ -345,7 +345,7 @@ def parseLogFileForHtml(log_file):
 # Extracts text from a given HTML file and indexes it into the Solr Instance
 def extractText(html_files):
     textFiles = []
-
+    docsURLs = []
     titles = {}
     for f in html_files:
         html_file = f["file"].strip()
@@ -382,7 +382,8 @@ def extractText(html_files):
             titles[title]=1
         html_body = d['text']
         textFiles.append(html_body)
-    return textFiles
+        docsURLs.append(file_url)
+    return textFiles,docsURLs
 
 #def main(argv):
 def expandWarcFile(warcFile):
@@ -439,6 +440,6 @@ def expandWarcFile(warcFile):
 		
 		# for i in html_files:
 			# extractTextAndIndexToSolr(i["file"], i["url"], i["wayback_url"], collection_id, event, event_type)
-		tf = extractText(html_files)
+		tf,urls = extractText(html_files)
 		#print "extracting Text finished"
-		return tf
+		return tf,urls

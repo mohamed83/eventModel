@@ -26,11 +26,12 @@ try:
 	#print inData
 	if intype == 'warc':
 		#warcFile = inData
-		texts = utils.expandWarcFile(inData)
+		texts,docsURLs = utils.expandWarcFile(inData)
 	else:
 		uf = open(inData,'r')
 		urls = uf.readlines()
 		uf.close()
+		docsURLs = urls
 		#urls = form['inputData']
 		
 	#if urls:
@@ -119,7 +120,9 @@ try:
 	print sents_ents
 	print "<br>============<br>"
 	print ldaTopics
-	#print "<br>============<br>"
+	print "<br>============<br>"
+	print ",".join(docsURLs)
+	print "<br>============<br>"
 	#print uniqueEntsWords
 	print "</body>"
 	print "</html>"
