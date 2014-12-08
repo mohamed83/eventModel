@@ -20,9 +20,13 @@ import logging
 import ner
 from gensim import corpora, models
 
+corpusTokens = []
+docsTokens = []
+allSents = []
+
 stopwordsList = stopwords.words('english')
 stopwordsList.extend(["news","people","said","comment","comments","share","email","new","would","one","world"])
-allSents = []
+
 
 def getEntities(texts):
         
@@ -65,15 +69,19 @@ def visible(element):
     return True
 
 def getTokens(texts):
-    tokens=[]
+    global corpusTokens
+    global docsTokens
+    #tokens=[]
     if type(texts) != type([]):
         texts = [texts]
     for s in texts:
         toks = nltk.word_tokenize(s.lower())
-        tokens.extend(toks)
-    tokens = [t.lower() for t in tokens if len(t)>2]
-    tokens = [t for t in tokens if t not in stopwordsList]
-    return tokens
+        #tokens.extend(toks)
+        corpusTokens.extend(toks)
+        docsTokens.append(toks)
+    tokens = [t.lower() for t in corpusTokens if len(t)>2]
+    corpusTokens = [t for t in tokens if t not in stopwordsList]
+    return corpusTokens #tokens
 
 def getFreq(tokens):
     return nltk.FreqDist(tokens)
@@ -261,10 +269,10 @@ def getFreqTokens(texts):
 	sortedTokensFreqs = getSorted(tokensFreqs,1)
 	return sortedTokensFreqs
 
-def getIndicativeWords(texts):
+def getIndicativeWords(texts,tokensFreqs):
 	global allSents
 	#Get Indicative tokens
-	toksTFDF,allSents = getTokensTFDF(texts)
+	toksTFDF,allSents = getTokensTFDF(texts,tokensFreqs)
 	
 	#sortedToksTFDF = sorted(filteredToksTFDF, key=lambda x: x[1][0]*x[1][1], reverse=True)
 	sortedToksTFDF = sorted(toksTFDF.items(), key=lambda x: x[1][0]*x[1][1], reverse=True)
@@ -302,6 +310,7 @@ def getEventModelInsts(sortedImptSents):
 		eventModelInstances.append(sentEnts)
 	return eventModelInstances
 
+'''
 def getTokensTFDF(texts):
 	tokensTF = []
 	#allTokensList=[]
@@ -328,7 +337,23 @@ def getTokensTFDF(texts):
 		tokensTFDF[t[0]] = (tokensTFDF[t[0]],t[1])
 	
 	return tokensTFDF,allSents
-	
+'''	
+
+def getTokensTFDF(texts,termFreq):
+    global docsTokens
+    #tokensTF = dict(getFreqTokens(texts))
+    tokensTF = dict(termFreq)
+    tokensDF = {}
+    for te in tokensTF:
+        df = sum([1 for t in docsTokens if te in t])
+        tokensDF[te] = df
+    
+    tokensTFDF = {}
+    for t in tokensDF:
+        tokensTFDF[t] = (tokensTF[t],tokensDF[t])
+    
+    return tokensTFDF,allSents
+
 def parseLogFileForHtml(log_file):
     htmlList = []
     

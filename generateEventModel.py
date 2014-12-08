@@ -68,7 +68,7 @@ try:
 
 	#Get Indicative tokens
 	#sortedToksTFDF = utils.getIndicativeWords(texts)
-	sortedToksTFDF = utils.getFilteredImptWords(texts)
+	sortedToksTFDF = utils.getFilteredImptWords(texts,sortedTokensFreqs)
 	
 	'''
 	filteredToksTFDF = []
