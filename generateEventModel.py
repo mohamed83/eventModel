@@ -38,27 +38,8 @@ try:
 		webpagesURLs = urls #inData.split('\n')
 		webpagesText = utils.getWebpageText(webpagesURLs)
 		texts = [t['text'] for t in webpagesText if t.has_key('text') and len(t['text'])>0]
-	'''
-	#warc = form['uploadedFile'].file
-	#warc = form.getvalue('uploader')
 	
 	
-	#print warc
-	#print warc.file
-	if warc: #and warc.file:
-		f = open(warcFile,"wb")
-		f.write(warc.read())
-		f.close()
-		#print "file saved"
-		#warcFile = warc.file.name
-		#print warcFile
-		texts = utils.expandWarcFile(warcFile)
-	#else:
-	#	texts = utils.expandWarcFile(warcFile)			
-	'''
-	
-	
-	#print texts
 	
 	#Get LDA Topics
 	ldaTopics = utils.getLDATopics(texts)
@@ -69,31 +50,6 @@ try:
 	#Get Indicative tokens
 	#sortedToksTFDF = utils.getIndicativeWords(texts)
 	sortedToksTFDF = utils.getFilteredImptWords(texts,sortedTokensFreqs)
-	
-	'''
-	filteredToksTFDF = []
-	toks = " ".join([])
-	#print toks
-	tokEntsDict = utils.getEntities(toks)[0]
-	tokEntsList = []
-	for te in tokEntsDict:
-		if te in ['LOCATION','DATE']:
-			tokEntsList.extend(tokEntsDict[te])
-	ntokEntsList= []
-	for s in tokEntsList:
-		s = s.lower()
-		ps = s.split()
-		if len(ps) > 1:
-			ntokEntsList.extend(ps)
-		else:
-			ntokEntsList.append(s)
-	print ntokEntsList
-	print '--------------'
-	print toks
-	for k in toksTFDF:
-		if k not in ntokEntsList:
-			filteredToksTFDF.append((k,toksTFDF[k]))
-	'''
 	
 	# Get Indicative Sentences	
 	sortedImptSents = utils.getIndicativeSents(texts,sortedToksTFDF,topK,intersectionTh)
