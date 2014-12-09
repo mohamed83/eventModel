@@ -103,9 +103,9 @@ def getSentences(textList =[]):
 			else:
 				newSents.append(s)
 
-        sentences = newSents
-        sentences = [s for sent in sentences for s in sent.split("\n") if len(s) > 3]
-        cleanSents = [sent.strip() for sent in sentences if len(sent.split()) > 3]
+        
+        newSents = [s for sent in newSents for s in sent.split("\n") if len(s) > 3]
+        cleanSents = [sent.strip() for sent in newSents if len(sent.split()) > 3]
         sents.extend(cleanSents)
     return sents
 
@@ -158,6 +158,15 @@ def getUniqueEntitiesWords(entities):
     entitiesWords = [ew.lower() for ew in entitiesWords]
     return entitiesWords
 
+def getPOS(wordsList):
+    if type(wordsList) != type([]):
+        wordsList = [wordsList]
+    posTags = [] 
+    for words in wordsList:
+        tags = nltk.pos_tag(words)
+        posTags.append(tags)
+    return posTags
+
 def getFilteredImptWords(texts,freqWords):
 	#nltk.pos_tag(text)
     impWordsTuples = getIndicativeWords(texts,freqWords)
@@ -168,17 +177,7 @@ def getFilteredImptWords(texts,freqWords):
     wordsDic = dict(impWordsTuples)
     nvWordsTuple = [(w,wordsDic[w]) for w in nvWords]
     return nvWordsTuple
-    '''
-    sents = getSentences(texts)
-    uniqueEnts = getUniqueEntities(sents)
-    uniqueEntsWords = getUniqueEntitiesWords(uniqueEnts)
     
-    filteredImpWordsTuples = []
-    for iw in impWordsTuples:
-        if iw[0] not in uniqueEntsWords:
-            filteredImpWordsTuples.append(iw)
-    return filteredImpWordsTuples,uniqueEntsWords
-    '''
 
 def getLDATopics(documents):
 	texts = []
@@ -262,7 +261,10 @@ def getWebpageText(URLs = []):
         webpagesText.append(text)
     return webpagesText
 
+
+
 #Get Frequent Tokens
+#moved
 def getFreqTokens(texts):
 	tokens = getTokens(texts)
 	f = getFreq(tokens)

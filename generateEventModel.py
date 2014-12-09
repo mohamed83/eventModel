@@ -15,11 +15,11 @@ try:
 	import logging
 	#print sys.version
 	import eventUtils as utils
+	import Collection
 	
 	
 	topK = 10
 	intersectionTh = 2
-	#warcFile = '/tmp/warcs/temp.warc'
 	form = cgi.FieldStorage() 
 	intype = form['inputType'].value
 	inData = form['inputData'].value
@@ -27,17 +27,20 @@ try:
 	if intype == 'warc':
 		#warcFile = inData
 		texts,docsURLs = utils.expandWarcFile(inData)
+		corpus = new Collection(docsURLs,texts)
 	else:
 		uf = open(inData,'r')
 		urls = uf.readlines()
 		uf.close()
+		corpus = new Collection(urls)
 		docsURLs = urls
-		#urls = form['inputData']
 		
-	#if urls:
-		webpagesURLs = urls #inData.split('\n')
-		webpagesText = utils.getWebpageText(webpagesURLs)
-		texts = [t['text'] for t in webpagesText if t.has_key('text') and len(t['text'])>0]
+		#webpagesURLs = urls #inData.split('\n')
+		
+		#webpagesText = utils.getWebpageText(webpagesURLs)
+		#texts = [t['text'] for t in webpagesText if t.has_key('text') and len(t['text'])>0]
+	
+	texts = [d.text for d in corpus.documents]
 	
 	
 	
@@ -45,14 +48,13 @@ try:
 	ldaTopics = utils.getLDATopics(texts)
 	
 	#Get Frequent Tokens
-	sortedTokensFreqs = utils.getFreqTokens(texts)
+	sortedTokensFreqs = corpus.getWordsFrequencies()#utils.getFreqTokens(texts)
 
 	#Get Indicative tokens
-	#sortedToksTFDF = utils.getIndicativeWords(texts)
-	sortedToksTFDF = utils.getFilteredImptWords(texts,sortedTokensFreqs)
+	sortedToksTFDF = corpus.getIndicativeWords()#utils.getFilteredImptWords(texts,sortedTokensFreqs)
 	
 	# Get Indicative Sentences	
-	sortedImptSents = utils.getIndicativeSents(texts,sortedToksTFDF,topK,intersectionTh)
+	sortedImptSents = corpus.getIndicativeSentences(topK,intersectionTh)#utils.getIndicativeSents(texts,sortedToksTFDF,topK,intersectionTh)
 	
 	# Get Event Model
 	eventModelInstances = utils.getEventModelInsts(sortedImptSents)
