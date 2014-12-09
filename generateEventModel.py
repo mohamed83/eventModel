@@ -96,7 +96,7 @@ try:
 	'''
 	
 	# Get Indicative Sentences	
-	sortedImptSents = utils.getIndicativeSents(sortedToksTFDF,topK,intersectionTh)
+	sortedImptSents = utils.getIndicativeSents(texts,sortedToksTFDF,topK,intersectionTh)
 	
 	# Get Event Model
 	eventModelInstances = utils.getEventModelInsts(sortedImptSents)

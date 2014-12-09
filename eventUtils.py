@@ -20,9 +20,9 @@ import logging
 import ner
 from gensim import corpora, models
 
-corpusTokens = []
-docsTokens = []
-allSents = []
+#corpusTokens = []
+#docsTokens = []
+#allSents = []
 
 stopwordsList = stopwords.words('english')
 stopwordsList.extend(["news","people","said","comment","comments","share","email","new","would","one","world"])
@@ -69,19 +69,20 @@ def visible(element):
     return True
 
 def getTokens(texts):
-    global corpusTokens
-    global docsTokens
+    #global corpusTokens
+    #global docsTokens
+    allTokens=[]
     #tokens=[]
     if type(texts) != type([]):
         texts = [texts]
     for s in texts:
         toks = nltk.word_tokenize(s.lower())
-        #tokens.extend(toks)
-        corpusTokens.extend(toks)
-        docsTokens.append(toks)
-    tokens = [t.lower() for t in corpusTokens if len(t)>2]
-    corpusTokens = [t for t in tokens if t not in stopwordsList]
-    return corpusTokens #tokens
+        allTokens.extend(toks)
+        #corpusTokens.extend(toks)
+        #docsTokens.append(toks)
+    allTokens = [t.lower() for t in allTokens if len(t)>2]
+    allTokens = [t for t in allTokens if t not in stopwordsList]
+    return allTokens
 
 def getFreq(tokens):
     return nltk.FreqDist(tokens)
@@ -157,9 +158,9 @@ def getUniqueEntitiesWords(entities):
     entitiesWords = [ew.lower() for ew in entitiesWords]
     return entitiesWords
 
-def getFilteredImptWords(texts):
+def getFilteredImptWords(texts,freqWords):
 	#nltk.pos_tag(text)
-    impWordsTuples = getIndicativeWords(texts)
+    impWordsTuples = getIndicativeWords(texts,freqWords)
     impWordsList = [w[0] for w in impWordsTuples]
     
     wordsTags = nltk.pos_tag(impWordsList)
@@ -270,36 +271,36 @@ def getFreqTokens(texts):
 	return sortedTokensFreqs
 
 def getIndicativeWords(texts,tokensFreqs):
-	global allSents
+	#global allSents
 	#Get Indicative tokens
-	toksTFDF,allSents = getTokensTFDF(texts,tokensFreqs)
+	toksTFDF = getTokensTFDF(texts,tokensFreqs)
 	
 	#sortedToksTFDF = sorted(filteredToksTFDF, key=lambda x: x[1][0]*x[1][1], reverse=True)
 	sortedToksTFDF = sorted(toksTFDF.items(), key=lambda x: x[1][0]*x[1][1], reverse=True)
 	return sortedToksTFDF
 	
-def getIndicativeSents(sortedToksTFDF,topK,intersectionTh):
+def getIndicativeSents(texts,sortedToksTFDF,topK,intersectionTh):
 	# Get Indicative Sentences
 	topToksTuples = sortedToksTFDF[:topK]
 	topToks = [k for k,_ in topToksTuples]
-	allImptSents = []
+	#allImptSents = []
+	allSents = getSentences(texts)
 	
-	impSentsF = {}
-	for sents in allSents:
-		impSents ={}
-		for sent in sents:
-			if sent not in impSents:
-				sentToks = getTokens(sent)
-				if len(sentToks) > 100:
-					continue
-				intersect = getIntersection(topToks, sentToks)
-				if len(intersect) > intersectionTh:
-					impSents[sent] = len(intersect)
-					if sent not in impSentsF:
-						impSentsF[sent] = len(intersect)
-		allImptSents.append(impSents)
+	#impSentsF = {}
+	impSents ={}
+	for sent in allSents:
+		if sent not in impSents:
+			sentToks = getTokens(sent)
+			if len(sentToks) > 100:
+				continue
+			intersect = getIntersection(topToks, sentToks)
+			if len(intersect) > intersectionTh:
+				impSents[sent] = len(intersect)
+				#if sent not in impSentsF:
+				#	impSentsF[sent] = len(intersect)
+			#allImptSents.append(impSents)
 	
-	sortedImptSents = getSorted(impSentsF.items(),1)
+	sortedImptSents = getSorted(impSents.items(),1)
 	return sortedImptSents
 
 def getEventModelInsts(sortedImptSents):
@@ -340,11 +341,15 @@ def getTokensTFDF(texts):
 '''	
 
 def getTokensTFDF(texts,termFreq):
-    global docsTokens
+    docsTokens=[]
+    for t in texts:
+        toks = getTokens(t)
+        docsTokens.append(toks)
     #tokensTF = dict(getFreqTokens(texts))
     tokensTF = dict(termFreq)
     tokensDF = {}
     for te in tokensTF:
+        
         df = sum([1 for t in docsTokens if te in t])
         tokensDF[te] = df
     
@@ -352,7 +357,7 @@ def getTokensTFDF(texts,termFreq):
     for t in tokensDF:
         tokensTFDF[t] = (tokensTF[t],tokensDF[t])
     
-    return tokensTFDF,allSents
+    return tokensTFDF
 
 def parseLogFileForHtml(log_file):
     htmlList = []
