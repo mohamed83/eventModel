@@ -15,7 +15,7 @@ try:
 	import logging
 	#print sys.version
 	import eventUtils as utils
-	import Collection
+	from collection import Collection
 	
 	
 	topK = 10
@@ -27,12 +27,12 @@ try:
 	if intype == 'warc':
 		#warcFile = inData
 		texts,docsURLs = utils.expandWarcFile(inData)
-		corpus = new Collection(docsURLs,texts)
+		corpus = Collection(docsURLs,texts)
 	else:
 		uf = open(inData,'r')
 		urls = uf.readlines()
 		uf.close()
-		corpus = new Collection(urls)
+		corpus = Collection(urls)
 		docsURLs = urls
 		
 		#webpagesURLs = urls #inData.split('\n')
@@ -41,7 +41,7 @@ try:
 		#texts = [t['text'] for t in webpagesText if t.has_key('text') and len(t['text'])>0]
 	
 	texts = [d.text for d in corpus.documents]
-	
+	#print texts
 	
 	
 	#Get LDA Topics
@@ -49,10 +49,10 @@ try:
 	
 	#Get Frequent Tokens
 	sortedTokensFreqs = corpus.getWordsFrequencies()#utils.getFreqTokens(texts)
-
+	#print sortedTokensFreqs
 	#Get Indicative tokens
 	sortedToksTFDF = corpus.getIndicativeWords()#utils.getFilteredImptWords(texts,sortedTokensFreqs)
-	
+	#print sortedToksTFDF
 	# Get Indicative Sentences	
 	sortedImptSents = corpus.getIndicativeSentences(topK,intersectionTh)#utils.getIndicativeSents(texts,sortedToksTFDF,topK,intersectionTh)
 	
@@ -64,6 +64,8 @@ try:
 	outputs = "<td>"
 	outpute = "</td>"
 	wordsOutput = "<tr><td>Frequent Words (term Frequency)</td><td>Important Words (term Freq * Doc Freq)</td></tr>"
+	
+	
 	for i in range(topK):
 		wordsOutput += rs + outputs + str(sortedTokensFreqs[i]) + outpute + outputs + str(sortedToksTFDF[i]) + outpute + re
 	

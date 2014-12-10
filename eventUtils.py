@@ -158,14 +158,9 @@ def getUniqueEntitiesWords(entities):
     entitiesWords = [ew.lower() for ew in entitiesWords]
     return entitiesWords
 
-def getPOS(wordsList):
-    if type(wordsList) != type([]):
-        wordsList = [wordsList]
-    posTags = [] 
-    for words in wordsList:
-        tags = nltk.pos_tag(words)
-        posTags.append(tags)
-    return posTags
+def getPOS(words):
+    tags = nltk.pos_tag(words)
+    return tags
 
 def getFilteredImptWords(texts,freqWords):
 	#nltk.pos_tag(text)

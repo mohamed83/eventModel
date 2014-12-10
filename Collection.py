@@ -1,4 +1,5 @@
-import Document
+from document import Document
+import eventUtils as utils
 class Collection:
     ''' Class for handling corpus collection'''
     def __init__(self):
@@ -12,14 +13,21 @@ class Collection:
     
     def __init__(self,urls,texts):
         self.URLs = urls
+        self.documents = []
+        self.words = []
+        self.sentences = []
+        self.wordsFrequencies = []
+        self.indicativeWords = []
+        self.indicativeSentences = []
         for u,d in zip(urls,texts):
-            doc = new Document(u,d)
+            doc = Document(u,d)
             self.documents.append(doc)
     
     def __init__(self,urls):
         self.URLs = urls
+        self.documents = []
         for u in self.URLs:
-            doc = new Document(u)
+            doc = Document(u)
             self.documents.append(doc)
             
         #self.documents = []
@@ -29,7 +37,7 @@ class Collection:
         self.indicativeWords = []
         self.indicativeSentences = []
     
-    def getFrequentWords(self):
+    def getWordsFrequencies(self):
         for d in self.documents:
             w = d.getWords()
             self.words.extend(w)
@@ -42,11 +50,11 @@ class Collection:
         if self.indicativeWords:
             return self.indicativeWords
         else:
-            toksTFDF = self.getTokensTFDF()
+            toksTFDF = self.getWordsTFDF()
             sortedToksTFDF = sorted(toksTFDF.items(), key=lambda x: x[1][0]*x[1][1], reverse=True)
             indWords = [w[0] for w in sortedToksTFDF]
             
-            wordsTags = utils.getPOS(indWords)[0]
+            wordsTags = utils.getPOS(indWords)
             nvWords = [w[0] for w in wordsTags if w[1].startswith('N') or w[1].startswith('V')]
             wordsDic = dict(sortedToksTFDF)
             self.indicativeWords = [(w,wordsDic[w]) for w in nvWords]
@@ -67,7 +75,7 @@ class Collection:
         return tokensTFDF
     
     def getIndicativeSentences(self,topK,intersectionTh):
-        if self.indicativeSentences:
+        if len(self.indicativeSentences) > 0:
             return self.indicativeSentences
         else:
             topToksTuples = self.indicativeWords[:topK]

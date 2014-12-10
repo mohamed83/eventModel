@@ -9,13 +9,14 @@ class Document:
         self.sentences = []
     
     def __init__(self,url,text):
-        self.URL = url
+        self.URL = url.strip()
         self.text = text
         self.words = []
         self.sentences = []
         
     def __init__(self,url):
-        self.URL = url
+        self.URL = url.strip()
+        self.text = ''
         self.getText()
         #self.text = ''
         self.words = []
@@ -27,7 +28,7 @@ class Document:
         else:
             r = utils.getTokens(self.text)
             if r:
-                self.words = r[0]
+                self.words = r
                 return self.words
     
     def getText(self):
@@ -46,5 +47,5 @@ class Document:
         else:
             r = utils.getSentences(self.text)
             if r:
-                self.sentences = r[0]
+                self.sentences = r
                 return self.sentences
